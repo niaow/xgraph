@@ -108,7 +108,7 @@ func (dte DependencyTreeError) flatten() []error {
 			werrs = append(werrs, DependencyTreeError{
 				JobName: dte.JobName,
 				Err:     v,
-			})
+			}.flatten()...)
 		}
 		return werrs
 	default:
