@@ -3,6 +3,7 @@ package xgraph
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -13,11 +14,15 @@ type depCache struct {
 	cache map[string]*depCacheEntry
 }
 
+// depCacheEntry is the underlying depCache cache entry type.
 type depCacheEntry struct {
 	deps []string
 	err  error
 }
 
+// getDeps gets a Job from the graph and calls Dependencies on it.
+// Results are cached so only one call to GetJob/Dependencies is done.
+// Errors are also cached.
 func (dc *depCache) getDeps(name string) ([]string, error) {
 	//do lookup in cache
 	ce := dc.cache[name]
@@ -78,6 +83,7 @@ func (dte DependencyTreeError) Backtrace() []string {
 	return []string{dte.JobName}
 }
 
+// coreError finds the innermost error in the tree
 func (dte DependencyTreeError) coreError() error {
 	for {
 		switch err := dte.Err.(type) {
@@ -104,6 +110,7 @@ func (me MultiError) Error() string {
 	return strings.Join(strs, "\n")
 }
 
+// flatten takes a tree of DependencyTreeError and MultiError and converts this to a slice of DependencyTreeError.
 func flatten(err error) []error {
 	switch e := err.(type) {
 	case DependencyTreeError:
@@ -126,6 +133,10 @@ func flatten(err error) []error {
 	}
 }
 
+// recurse resolves all of the dependencies of the current depTree node.
+// ErrDependencyCycle is returned if a dependency cycle is found.
+// Uses objcache to acquire *depTree objects.
+// Obtains dependency info from the *depCache
 func (dt *depTree) recurse(dc *depCache, objcache *sync.Pool) (err error) {
 	//wrap errors in a DependencyTreeError
 	defer func() {
@@ -167,4 +178,21 @@ func (dt *depTree) recurse(dc *depCache, objcache *sync.Pool) (err error) {
 		err = MultiError(errs)
 	}
 	return
+}
+
+// getErroredBuilds scans the error and returns a list of errored builds
+func getErroredBuilds(err error) (lst []string) {
+	defer func() { sort.Strings(lst) }()
+	switch e := err.(type) {
+	case DependencyTreeError:
+		return append(getErroredBuilds(e.Err), e.JobName)
+	case MultiError:
+		blds := []string{}
+		for _, v := range e {
+			blds = append(blds, getErroredBuilds(v)...)
+		}
+		return blds
+	default:
+		return []string{}
+	}
 }

@@ -161,18 +161,26 @@ func TestDep(t *testing.T) {
 			Expect: []interface{}{[]string(nil), io.EOF},
 		},
 		{
-			Name: "deptree-checkcycle",
-			Func: func() ([]string, error) {
-				return (&depCache{
-					cache: map[string]*depCacheEntry{
-						"wow": &depCacheEntry{
-							deps: nil,
-							err:  io.EOF,
-						},
-					},
-				}).getDeps("wow")
-			},
-			Expect: []interface{}{[]string(nil), io.EOF},
+			Name: "deptree-checkcycle-cycle",
+			Args: []interface{}{"a"},
+			Func: (&depTree{
+				parent: &depTree{
+					name: "b",
+				},
+				name: "a",
+			}).checkCycle,
+			Expect: []interface{}{ErrDependencyCycle},
+		},
+		{
+			Name: "deptree-checkcycle-nocycle",
+			Args: []interface{}{"c"},
+			Func: (&depTree{
+				parent: &depTree{
+					name: "b",
+				},
+				name: "a",
+			}).checkCycle,
+			Expect: []interface{}{nil},
 		},
 	}
 	for _, tv := range tests {

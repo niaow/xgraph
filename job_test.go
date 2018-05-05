@@ -10,18 +10,22 @@ import (
 
 type testCase struct {
 	Name   string
+	Args   []interface{}
 	Func   interface{}
 	Expect []interface{}
 }
 
 func (tc testCase) runTest(t *testing.T) {
-	vals := reflect.ValueOf(tc.Func).Call(nil)
+	args := make([]reflect.Value, len(tc.Args))
+	for i, v := range tc.Args {
+		args[i] = reflect.ValueOf(v)
+	}
+	vals := reflect.ValueOf(tc.Func).Call(args)
 	valint := make([]interface{}, len(vals))
 	for i, v := range vals {
 		valint[i] = v.Interface()
 	}
 	if !reflect.DeepEqual(valint, tc.Expect) {
-
 		t.Errorf("Expected %v but got %v for test %q", spew.Sdump(tc.Expect), spew.Sdump(valint), tc.Name)
 	}
 }
