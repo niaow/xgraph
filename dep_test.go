@@ -2,10 +2,11 @@ package xgraph
 
 import (
 	"errors"
+	"io"
 	"testing"
 )
 
-func TestDepErr(t *testing.T) {
+func TestDep(t *testing.T) {
 	tests := []testCase{
 		{
 			Name:   "multierror",
@@ -117,9 +118,64 @@ func TestDepErr(t *testing.T) {
 				},
 			}},
 		},
-		//TODO: test flatten
+		{
+			Name: "depcache-get",
+			Func: func() ([]string, error) {
+				return (&depCache{
+					graph: NewGraph().
+						AddJob(BasicJob{
+							JobName: "wow",
+							Deps:    []string{"ok"},
+						}),
+					cache: map[string]*depCacheEntry{},
+				}).getDeps("wow")
+			},
+			Expect: []interface{}{[]string{"ok"}, nil},
+		},
+		{
+			Name: "depcache-get-cache",
+			Func: func() ([]string, error) {
+				return (&depCache{
+					cache: map[string]*depCacheEntry{
+						"wow": &depCacheEntry{
+							deps: []string{"ok"},
+							err:  nil,
+						},
+					},
+				}).getDeps("wow")
+			},
+			Expect: []interface{}{[]string{"ok"}, nil},
+		},
+		{
+			Name: "depcache-get-cache-error",
+			Func: func() ([]string, error) {
+				return (&depCache{
+					cache: map[string]*depCacheEntry{
+						"wow": &depCacheEntry{
+							deps: nil,
+							err:  io.EOF,
+						},
+					},
+				}).getDeps("wow")
+			},
+			Expect: []interface{}{[]string(nil), io.EOF},
+		},
+		{
+			Name: "deptree-checkcycle",
+			Func: func() ([]string, error) {
+				return (&depCache{
+					cache: map[string]*depCacheEntry{
+						"wow": &depCacheEntry{
+							deps: nil,
+							err:  io.EOF,
+						},
+					},
+				}).getDeps("wow")
+			},
+			Expect: []interface{}{[]string(nil), io.EOF},
+		},
 	}
 	for _, tv := range tests {
-		tv.genTest("DepErr", t)
+		tv.genTest("Dep", t)
 	}
 }
