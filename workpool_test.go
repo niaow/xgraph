@@ -41,6 +41,6 @@ func TestWorkPool(t *testing.T) {
 		},
 	}
 	for _, tv := range tests {
-		tv.genTest("WorkPool", t)
+		tv.genTest(t)
 	}
 }

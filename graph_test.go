@@ -82,6 +82,6 @@ func TestGraph(t *testing.T) {
 		},
 	}
 	for _, tv := range tests {
-		tv.genTest("Graph", t)
+		tv.genTest(t)
 	}
 }

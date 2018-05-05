@@ -26,8 +26,8 @@ func (tc testCase) runTest(t *testing.T) {
 	}
 }
 
-func (tc testCase) genTest(prefix string, t *testing.T) {
-	t.Run(prefix+"-"+tc.Name, func(t *testing.T) {
+func (tc testCase) genTest(t *testing.T) {
+	t.Run(tc.Name, func(t *testing.T) {
 		tc.runTest(t)
 	})
 }
@@ -76,6 +76,6 @@ func TestBasicJob(t *testing.T) {
 		},
 	}
 	for _, tv := range tests {
-		tv.genTest("BasicJob", t)
+		tv.genTest(t)
 	}
 }

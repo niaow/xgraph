@@ -176,6 +176,6 @@ func TestDep(t *testing.T) {
 		},
 	}
 	for _, tv := range tests {
-		tv.genTest("Dep", t)
+		tv.genTest(t)
 	}
 }
