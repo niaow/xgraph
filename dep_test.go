@@ -51,33 +51,35 @@ func TestDepErr(t *testing.T) {
 			Expect: []interface{}{"error \"test\" in test2 in testjob"},
 		},
 		{
-			Name: "dependency-tree-error-flatten",
-			Func: DependencyTreeError{
-				JobName: "testjob",
-				Err: MultiError{
-					DependencyTreeError{
-						JobName: "test1",
-						Err:     errors.New("error 1"),
-					},
-					DependencyTreeError{
-						JobName: "test2",
-						Err:     errors.New("error 2"),
-					},
-					DependencyTreeError{
-						JobName: "test3",
-						Err: MultiError{
-							DependencyTreeError{
-								JobName: "test4",
-								Err:     errors.New("error 4"),
-							},
-							DependencyTreeError{
-								JobName: "test5",
-								Err:     errors.New("error 5"),
+			Name: "error-flatten",
+			Func: func() []error {
+				return flatten(DependencyTreeError{
+					JobName: "testjob",
+					Err: MultiError{
+						DependencyTreeError{
+							JobName: "test1",
+							Err:     errors.New("error 1"),
+						},
+						DependencyTreeError{
+							JobName: "test2",
+							Err:     errors.New("error 2"),
+						},
+						DependencyTreeError{
+							JobName: "test3",
+							Err: MultiError{
+								DependencyTreeError{
+									JobName: "test4",
+									Err:     errors.New("error 4"),
+								},
+								DependencyTreeError{
+									JobName: "test5",
+									Err:     errors.New("error 5"),
+								},
 							},
 						},
 					},
-				},
-			}.flatten,
+				})
+			},
 			Expect: []interface{}{[]error{
 				DependencyTreeError{
 					JobName: "testjob",
@@ -99,7 +101,7 @@ func TestDepErr(t *testing.T) {
 						JobName: "test3",
 						Err: DependencyTreeError{
 							JobName: "test4",
-							Err:     errors.New("test 4"),
+							Err:     errors.New("error 4"),
 						},
 					},
 				},
@@ -109,7 +111,7 @@ func TestDepErr(t *testing.T) {
 						JobName: "test3",
 						Err: DependencyTreeError{
 							JobName: "test5",
-							Err:     errors.New("test 5"),
+							Err:     errors.New("error 5"),
 						},
 					},
 				},

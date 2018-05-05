@@ -4,6 +4,8 @@ import (
 	"io"
 	"reflect"
 	"testing"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 type testCase struct {
@@ -19,7 +21,8 @@ func (tc testCase) runTest(t *testing.T) {
 		valint[i] = v.Interface()
 	}
 	if !reflect.DeepEqual(valint, tc.Expect) {
-		t.Errorf("Expected %v but got %v for test %q", tc.Expect, valint, tc.Name)
+
+		t.Errorf("Expected %v but got %v for test %q", spew.Sdump(tc.Expect), spew.Sdump(valint), tc.Name)
 	}
 }
 

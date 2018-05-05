@@ -93,29 +93,6 @@ func (dte DependencyTreeError) Error() string {
 	return fmt.Sprintf("error %q in %s", dte.coreError().Error(), strings.Join(dte.Backtrace(), " in "))
 }
 
-func (dte DependencyTreeError) flatten() []error {
-	switch err := dte.Err.(type) {
-	case DependencyTreeError:
-		//run flatten in tree
-		return DependencyTreeError{
-			JobName: dte.JobName,
-			Err:     MultiError(err.flatten()),
-		}.flatten()
-	case MultiError:
-		errs := []error(err)
-		werrs := []error{}
-		for _, v := range errs {
-			werrs = append(werrs, DependencyTreeError{
-				JobName: dte.JobName,
-				Err:     v,
-			}.flatten()...)
-		}
-		return werrs
-	default:
-		return []error{dte}
-	}
-}
-
 // MultiError is a type containing multiple errors
 type MultiError []error
 
@@ -125,6 +102,28 @@ func (me MultiError) Error() string {
 		strs[i] = err.Error()
 	}
 	return strings.Join(strs, "\n")
+}
+
+func flatten(err error) []error {
+	switch e := err.(type) {
+	case DependencyTreeError:
+		errs := flatten(e.Err)
+		for i, v := range errs {
+			errs[i] = DependencyTreeError{
+				JobName: e.JobName,
+				Err:     v,
+			}
+		}
+		return errs
+	case MultiError:
+		errs := []error{}
+		for _, v := range e {
+			errs = append(errs, flatten(v)...)
+		}
+		return errs
+	default:
+		return []error{err}
+	}
 }
 
 func (dt *depTree) recurse(dc *depCache, objcache *sync.Pool) (err error) {
