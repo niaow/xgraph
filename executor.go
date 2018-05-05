@@ -7,10 +7,10 @@ type Executor struct {
 	runner WorkRunner
 }
 
-//JobStatus is the status of a Job.
+// JobStatus is the status of a Job.
 type JobStatus string
 
-//JobStatus constants
+// JobStatus constants
 const (
 	StatusPreparing JobStatus = "preparing"
 	StatusQueued    JobStatus = "queued"
@@ -19,7 +19,7 @@ const (
 	StatusFailed    JobStatus = "failed"
 )
 
-//StatusHandler is a type that handles status update events
+// StatusHandler is a type that handles status update events
 type StatusHandler interface {
 	OnStatusUpdate(name string, err error)
 }

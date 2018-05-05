@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-//depCache is a type used to cache dependency lookups
+// depCache is a type used to cache dependency lookups
 type depCache struct {
 	graph *Graph
 	cache map[string]*depCacheEntry
@@ -39,7 +39,7 @@ func (dc *depCache) getDeps(name string) ([]string, error) {
 	return deps, err
 }
 
-//ErrDependencyCycle is an error returned if a dependency cycle is detected
+// ErrDependencyCycle is an error returned if a dependency cycle is detected
 var ErrDependencyCycle = errors.New("dependency cycle detected")
 
 //depTree is used to walk a dependency tree to resolve deps and detect cycles
@@ -48,7 +48,7 @@ type depTree struct {
 	parent *depTree
 }
 
-//checkCycle checks if any of the parents are the given string
+// checkCycle checks if any of the parents are the given string
 func (dt *depTree) checkCycle(name string) error {
 	for dt != nil {
 		if dt.name == name {
@@ -59,17 +59,17 @@ func (dt *depTree) checkCycle(name string) error {
 	return nil
 }
 
-//DependencyTreeError is an error type returned when recursing the dependency tree
+// DependencyTreeError is an error type returned when recursing the dependency tree
 type DependencyTreeError struct {
-	//JobName is the name of the job it occurred in.
+	// JobName is the name of the job it occurred in.
 	JobName string
 
-	//Err is the error which occurred.
-	//This may be another DependencyTreeError from scanning a dependency.
+	// Err is the error which occurred.
+	// This may be another DependencyTreeError from scanning a dependency.
 	Err error
 }
 
-//Backtrace generates a list of the builds the error occurred in
+// Backtrace generates a list of the builds the error occurred in
 func (dte DependencyTreeError) Backtrace() []string {
 	sub, ok := dte.Err.(DependencyTreeError)
 	if ok {
@@ -116,7 +116,7 @@ func (dte DependencyTreeError) flatten() []error {
 	}
 }
 
-//MultiError is a type containing multiple errors
+// MultiError is a type containing multiple errors
 type MultiError []error
 
 func (me MultiError) Error() string {
