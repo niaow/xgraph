@@ -240,8 +240,35 @@ func TestDep(t *testing.T) {
 					"test2",
 				},
 			},
-			Func:   recurseGraph,
-			Expect: []interface{}{},
+			Func: recurseGraph,
+			Expect: []interface{}{
+				MultiError{
+					DependencyTreeError{
+						JobName: "test1",
+						Err: DependencyTreeError{
+							JobName: "test2",
+							Err: DependencyTreeError{
+								JobName: "test3",
+								Err:     ErrorJobNotFound("test3"),
+							},
+						},
+					},
+					DependencyTreeError{
+						JobName: "test1",
+						Err: DependencyTreeError{
+							JobName: "test3",
+							Err:     ErrorJobNotFound("test3"),
+						},
+					},
+					DependencyTreeError{
+						JobName: "test2",
+						Err: DependencyTreeError{
+							JobName: "test3",
+							Err:     ErrorJobNotFound("test3"),
+						},
+					},
+				},
+			},
 		},
 	}
 	for _, tv := range tests {
