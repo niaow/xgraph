@@ -220,6 +220,29 @@ func TestDep(t *testing.T) {
 			Func:   getErroredBuilds,
 			Expect: []interface{}{[]string{"test", "test2"}},
 		},
+		{
+			Name: "recurseGraph",
+			Args: []interface{}{
+				&depCache{
+					graph: NewGraph().
+						AddJob(BasicJob{
+							JobName: "test1",
+							Deps:    []string{"test2", "test3"},
+						}).
+						AddJob(BasicJob{
+							JobName: "test2",
+							Deps:    []string{"test3"},
+						}),
+					cache: make(map[string]*depCacheEntry),
+				},
+				[]string{
+					"test1",
+					"test2",
+				},
+			},
+			Func:   recurseGraph,
+			Expect: []interface{}{},
+		},
 	}
 	for _, tv := range tests {
 		tv.genTest(t)

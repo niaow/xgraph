@@ -180,6 +180,29 @@ func (dt *depTree) recurse(dc *depCache, objcache *sync.Pool) (err error) {
 	return
 }
 
+// recurseGraph resolves all of the dependencies of a graph
+func recurseGraph(dc *depCache, targets []string) (err error) {
+	errs := []error{}
+	defer func() {
+		if len(errs) > 0 {
+			err = MultiError(flatten(MultiError(errs)))
+		}
+	}()
+	pool := &sync.Pool{
+		New: func() interface{} { return new(depTree) },
+	}
+	dt := new(depTree)
+	for _, targ := range targets {
+		dt.parent = nil
+		dt.name = targ
+		e := dt.recurse(dc, pool)
+		if e != nil {
+			errs = append(errs, e)
+		}
+	}
+	return
+}
+
 // dedup takes a sorted string slice with duplicates and returns a slice without duplicates
 func dedup(strs []string) []string {
 	for i := 1; i < len(strs); i++ {
