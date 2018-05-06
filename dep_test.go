@@ -204,6 +204,22 @@ func TestDep(t *testing.T) {
 			}).checkCycle,
 			Expect: []interface{}{nil},
 		},
+		{
+			Name: "getErroredBuilds",
+			Args: []interface{}{
+				MultiError{
+					DependencyTreeError{
+						JobName: "test",
+						Err: DependencyTreeError{
+							JobName: "test2",
+							Err:     errors.New("nothing here, move along"),
+						},
+					},
+				},
+			},
+			Func:   getErroredBuilds,
+			Expect: []interface{}{[]string{"test", "test2"}},
+		},
 	}
 	for _, tv := range tests {
 		tv.genTest(t)
