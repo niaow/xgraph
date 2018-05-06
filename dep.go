@@ -184,8 +184,11 @@ func (dt *depTree) recurse(dc *depCache, objcache *sync.Pool) (err error) {
 func recurseGraph(dc *depCache, targets []string) (err error) {
 	errs := []error{}
 	defer func() {
-		if len(errs) > 0 {
-			err = MultiError(flatten(MultiError(errs)))
+		errs = flatten(MultiError(errs))
+		if len(errs) > 1 {
+			err = MultiError(errs)
+		} else if len(errs) == 1 {
+			err = errs[0]
 		}
 	}()
 	pool := &sync.Pool{

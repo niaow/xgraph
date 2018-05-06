@@ -232,12 +232,14 @@ func TestDep(t *testing.T) {
 						AddJob(BasicJob{
 							JobName: "test2",
 							Deps:    []string{"test3"},
-						}),
+						}).
+						AddJob(BasicJob{JobName: "test4"}),
 					cache: make(map[string]*depCacheEntry),
 				},
 				[]string{
 					"test1",
 					"test2",
+					"test4",
 				},
 			},
 			Func: recurseGraph,
@@ -266,6 +268,36 @@ func TestDep(t *testing.T) {
 							JobName: "test3",
 							Err:     ErrorJobNotFound("test3"),
 						},
+					},
+				},
+			},
+		},
+		{
+			Name: "recurseGraph-cycle",
+			Args: []interface{}{
+				&depCache{
+					graph: NewGraph().
+						AddJob(BasicJob{
+							JobName: "test1",
+							Deps:    []string{"test2"},
+						}).
+						AddJob(BasicJob{
+							JobName: "test2",
+							Deps:    []string{"test1"},
+						}),
+					cache: make(map[string]*depCacheEntry),
+				},
+				[]string{
+					"test1",
+				},
+			},
+			Func: recurseGraph,
+			Expect: []interface{}{
+				DependencyTreeError{
+					JobName: "test1",
+					Err: DependencyTreeError{
+						JobName: "test2",
+						Err:     ErrDependencyCycle,
 					},
 				},
 			},
