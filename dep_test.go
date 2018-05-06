@@ -9,6 +9,28 @@ import (
 func TestDep(t *testing.T) {
 	tests := []testCase{
 		{
+			Name: "dedup",
+			Args: []interface{}{
+				[]string{
+					"apple", "apple",
+					"bannana", "bannana", "bannana",
+					"ok",
+					"orange",
+					"wow",
+				},
+			},
+			Func: dedup,
+			Expect: []interface{}{
+				[]string{
+					"apple",
+					"bannana",
+					"ok",
+					"orange",
+					"wow",
+				},
+			},
+		},
+		{
 			Name:   "multierror",
 			Func:   MultiError{errors.New("wow"), errors.New("ok")}.Error,
 			Expect: []interface{}{"wow\nok"},

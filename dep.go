@@ -180,9 +180,23 @@ func (dt *depTree) recurse(dc *depCache, objcache *sync.Pool) (err error) {
 	return
 }
 
+// dedup takes a sorted string slice with duplicates and returns a slice without duplicates
+func dedup(strs []string) []string {
+	for i := 1; i < len(strs); i++ {
+		if strs[i-1] == strs[i] {
+			strs = append(strs[:i-1], strs[i:]...)
+			i--
+		}
+	}
+	return strs
+}
+
 // getErroredBuilds scans the error and returns a list of errored builds
 func getErroredBuilds(err error) (lst []string) {
-	defer func() { sort.Strings(lst) }()
+	defer func() {
+		sort.Strings(lst)
+		lst = dedup(lst)
+	}()
 	switch e := err.(type) {
 	case DependencyTreeError:
 		return append(getErroredBuilds(e.Err), e.JobName)
