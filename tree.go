@@ -12,7 +12,6 @@ type jTree struct {
 type treeBuilder struct {
 	forest map[string]*jTree
 	g      *Graph
-	dc     *depCache
 }
 
 func (tb *treeBuilder) genTree(name string) (*jTree, error) {
@@ -38,7 +37,7 @@ func (tb *treeBuilder) genTree(name string) (*jTree, error) {
 	t.job = j
 
 	//load dependency list
-	deps, err := tb.dc.getDeps(name)
+	deps, err := j.Dependencies()
 	if err != nil {
 		t.err = err
 		t.finished = true
