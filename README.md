@@ -1,1 +1,1 @@
-# xgraph
+# xgraph [![GoDoc](https://godoc.org/github.com/jadr2ddude/xgraph?status.svg)](https://godoc.org/github.com/jadr2ddude/xgraph)[![Build Status](https://travis-ci.org/jadr2ddude/xgraph.svg?branch=master)](https://travis-ci.org/jadr2ddude/xgraph)
