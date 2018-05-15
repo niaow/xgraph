@@ -44,6 +44,9 @@ func (p *Promise) onFinish() {
 	for _, v := range p.sfs {
 		v()
 	}
+	//save memory
+	p.sfs = nil
+	p.efs = nil
 }
 
 // onFail is the FailHandler passed to the promise function
@@ -53,6 +56,9 @@ func (p *Promise) onFail(err error) {
 	for _, v := range p.efs {
 		v(err)
 	}
+	//save memory
+	p.sfs = nil
+	p.efs = nil
 }
 
 //FinishHandler is a type of function used as a callback for a Promise on success
