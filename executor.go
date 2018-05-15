@@ -159,7 +159,13 @@ func (ex *executor) promise(name string) *Promise {
 		//run dep promise
 		dps.Then(
 			func() { //on success, run build
-				ex.runJob(jt).Then(s, f)
+				sr, err := jt.job.ShouldRun() //check if the job should run
+				if err != nil {               //error out if we cant tell whether it should be run
+					f(err)
+				}
+				if sr {
+					ex.runJob(jt).Then(s, f)
+				}
 			},
 			func(err error) {
 				f(err)
