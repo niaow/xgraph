@@ -73,7 +73,7 @@ func NewPromise(fun func(FinishHandler, FailHandler)) *Promise {
 // NewMultiPromise returns a Promise which is fullfilled when all of the promises are fullfilled.
 // If one promise fails, this error will be propogated.
 // If multiple promises fail, a MultiError will be sent to the FailHandler instead.
-func NewMultiPromise(p []*Promise) *Promise {
+func NewMultiPromise(p ...*Promise) *Promise {
 	return NewPromise(func(s FinishHandler, f FailHandler) {
 		var lck sync.Mutex
 		n := len(p)

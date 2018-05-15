@@ -150,7 +150,7 @@ func (ex *executor) promise(name string) *Promise {
 			for i, v := range jt.deps {
 				depps[i] = ex.promise(v.name)
 			}
-			dps = NewMultiPromise(depps)
+			dps = NewMultiPromise(depps...)
 		} else {
 			dps = NewPromise(func(s FinishHandler, f FailHandler) {
 				s()
