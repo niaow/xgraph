@@ -1,14 +1,10 @@
 package xgraph
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
 )
-
-// ErrDependencyCycle is an error returned if a dependency cycle is detected
-var ErrDependencyCycle = errors.New("dependency cycle detected")
 
 // DependencyTreeError is an error type returned when recursing the dependency tree
 type DependencyTreeError struct {
