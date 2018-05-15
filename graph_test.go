@@ -68,16 +68,16 @@ func TestGraph(t *testing.T) {
 				return NewGraph().
 					GetJob("test")
 			},
-			Expect: []interface{}{nil, ErrorJobNotFound("test")},
+			Expect: []interface{}{nil, JobNotFoundError("test")},
 		},
 		{
 			Name:   "not-found-error",
-			Func:   ErrorJobNotFound("test").Error,
+			Func:   JobNotFoundError("test").Error,
 			Expect: []interface{}{"job not found: \"test\""},
 		},
 		{
 			Name:   "not-found-string",
-			Func:   ErrorJobNotFound("test").String,
+			Func:   JobNotFoundError("test").String,
 			Expect: []interface{}{"job not found: \"test\""},
 		},
 	}

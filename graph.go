@@ -42,15 +42,15 @@ func (g *Graph) generateJob(name string) (Job, error) {
 	return nil, nil
 }
 
-// ErrorJobNotFound is an error type indicating that a job was not found.
+// JobNotFoundError is an error type indicating that a job was not found.
 // The underlying string is the name of the job.
-type ErrorJobNotFound string
+type JobNotFoundError string
 
-func (err ErrorJobNotFound) Error() string {
+func (err JobNotFoundError) Error() string {
 	return fmt.Sprintf("job not found: %q", string(err))
 }
 
-func (err ErrorJobNotFound) String() string {
+func (err JobNotFoundError) String() string {
 	return err.Error()
 }
 
@@ -64,7 +64,7 @@ func (g *Graph) GetJob(name string) (j Job, err error) {
 		}
 	}
 	if j == nil {
-		err = ErrorJobNotFound(name)
+		err = JobNotFoundError(name)
 	}
 	return
 }
