@@ -8,8 +8,8 @@ type Graph struct {
 	jobs       map[string]Job
 }
 
-// NewGraph creates a new Graph
-func NewGraph() *Graph {
+// New creates a new Graph
+func New() *Graph {
 	return &Graph{
 		generators: []JobGenerator{},
 		jobs:       make(map[string]Job),

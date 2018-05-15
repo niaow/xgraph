@@ -10,7 +10,7 @@ func TestGraph(t *testing.T) {
 		{
 			Name: "basic",
 			Func: func() (Job, error) {
-				return NewGraph().
+				return New().
 					AddJob(BasicJob{JobName: "test"}).
 					GetJob("test")
 			},
@@ -19,7 +19,7 @@ func TestGraph(t *testing.T) {
 		{
 			Name: "twojobs",
 			Func: func() (Job, error) {
-				return NewGraph().
+				return New().
 					AddJob(BasicJob{JobName: "test"}).
 					AddJob(BasicJob{JobName: "test2"}).
 					GetJob("test")
@@ -29,7 +29,7 @@ func TestGraph(t *testing.T) {
 		{
 			Name: "generate",
 			Func: func() (Job, error) {
-				return NewGraph().
+				return New().
 					AddGenerator(func(name string) (Job, error) {
 						return BasicJob{JobName: name}, nil
 					}).
@@ -40,7 +40,7 @@ func TestGraph(t *testing.T) {
 		{
 			Name: "generate-multiple",
 			Func: func() (Job, error) {
-				return NewGraph().
+				return New().
 					AddGenerator(func(name string) (Job, error) {
 						return BasicJob{JobName: name}, nil
 					}).
@@ -54,7 +54,7 @@ func TestGraph(t *testing.T) {
 		{
 			Name: "generate-error",
 			Func: func() (Job, error) {
-				return NewGraph().
+				return New().
 					AddGenerator(func(name string) (Job, error) {
 						return nil, io.EOF
 					}).
@@ -65,7 +65,7 @@ func TestGraph(t *testing.T) {
 		{
 			Name: "not-found",
 			Func: func() (Job, error) {
-				return NewGraph().
+				return New().
 					GetJob("test")
 			},
 			Expect: []interface{}{nil, JobNotFoundError("test")},

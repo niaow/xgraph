@@ -10,7 +10,7 @@ func TestRunner(t *testing.T) {
 	runstats := map[string]bool{}
 
 	//create graph to use for tests
-	g := NewGraph().AddJob(BasicJob{
+	g := New().AddJob(BasicJob{
 		JobName: "test1",
 		RunCallback: func() error {
 			runstats["test1"] = true
