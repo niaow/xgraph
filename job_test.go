@@ -1,6 +1,7 @@
 package xgraph
 
 import (
+	"context"
 	"io"
 	"reflect"
 	"testing"
@@ -45,16 +46,19 @@ func TestBasicJob(t *testing.T) {
 		},
 		{
 			Name:   "run",
+			Args:   []interface{}{context.Background()},
 			Func:   BasicJob{RunCallback: func() error { return nil }}.Run,
 			Expect: []interface{}{nil},
 		},
 		{
 			Name:   "run-error-propogate",
+			Args:   []interface{}{context.Background()},
 			Func:   BasicJob{RunCallback: func() error { return io.EOF }}.Run,
 			Expect: []interface{}{io.EOF},
 		},
 		{
 			Name:   "run-missing-callback",
+			Args:   []interface{}{context.Background()},
 			Func:   BasicJob{}.Run,
 			Expect: []interface{}{ErrMissingCallback},
 		},

@@ -1,5 +1,7 @@
 package xgraph
 
+import "context"
+
 //Runner is a tool to run graphs
 type Runner struct {
 	Graph        *Graph
@@ -8,7 +10,7 @@ type Runner struct {
 }
 
 //Run executes the targets on the graph
-func (r *Runner) Run(targets ...string) {
+func (r *Runner) Run(ctx context.Context, targets ...string) {
 	//get WorkRunner or create it
 	wr := r.WorkRunner
 	if wr == nil {
@@ -34,6 +36,7 @@ func (r *Runner) Run(targets ...string) {
 		evh:      r.EventHandler,
 		proms:    make(map[string]*Promise),
 		cbset:    make(map[string]func(error)),
+		ctx:      ctx,
 	}
 	ex.execute()
 }

@@ -1,6 +1,7 @@
 package xgraph
 
 import (
+	"context"
 	"errors"
 	"testing"
 )
@@ -54,7 +55,7 @@ func TestRunner(t *testing.T) {
 					Graph:        g,
 					WorkRunner:   wp,
 					EventHandler: NoOpEventHandler,
-				}).Run("test1")
+				}).Run(context.Background(), "test1")
 				if !runstats["test1"] {
 					return errors.New("test did not run")
 				}

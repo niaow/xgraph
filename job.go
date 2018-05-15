@@ -1,6 +1,9 @@
 package xgraph
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
 // Job is an operation in the execution graph
 type Job interface {
@@ -9,7 +12,8 @@ type Job interface {
 
 	// The Run method runs the job.
 	// Is called after the dependencies have been run successfully.
-	Run() error
+	// A context may be provided for cancellation purposes.
+	Run(ctx context.Context) error
 
 	// ShouldRun checks if the job should be run.
 	// Job is marked as errored if this returns an error.
@@ -20,6 +24,9 @@ type Job interface {
 	// If this returns an error, the Job is marked as errored.
 	Dependencies() ([]string, error)
 }
+
+//ErrCanceled should be returned by a Job.Run when cancelled
+var ErrCanceled = errors.New("job cancelled")
 
 // BasicJob is a simple type which implements Job.
 type BasicJob struct {
@@ -50,7 +57,7 @@ var ErrMissingCallback = errors.New("missing callback for BasicJob")
 
 // Run runs the BasicJob, calling RunCallback.
 // Returns ErrMissingCallback if RunCallback is nil.
-func (bj BasicJob) Run() error {
+func (bj BasicJob) Run(ctx context.Context) error {
 	if bj.RunCallback == nil {
 		return ErrMissingCallback
 	}

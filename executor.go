@@ -1,12 +1,15 @@
 package xgraph
 
 import (
+	"context"
 	"sync"
 )
 
 type dispatchTracker struct {
 	// job is the Job
 	job Job
+	// ctx is a context for running the Job
+	ctx context.Context
 	// notch is the channel to send notifications to
 	notch chan notification
 }
@@ -25,7 +28,7 @@ func (dt *dispatchTracker) task() error {
 		job:   dt.job,
 		state: 1,
 	}
-	err := dt.job.Run()
+	err := dt.job.Run(dt.ctx)
 	return err
 }
 
@@ -62,6 +65,8 @@ type executor struct {
 	proms map[string]*Promise
 	// cbset is the set of callbacks for Job completion
 	cbset map[string]func(error)
+	// ctx is the context used for execution (with cancel)
+	ctx context.Context
 }
 
 // startDispatcher populates dispatchch and starts a goroutine which dispatches jobs
@@ -75,6 +80,7 @@ func (ex *executor) startDispatcher() {
 			dt := &dispatchTracker{
 				job:   j,
 				notch: ex.notifych,
+				ctx:   ex.ctx,
 			}
 			ex.runner.DoTask(dt.task, dt)
 		}
