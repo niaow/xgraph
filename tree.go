@@ -112,10 +112,6 @@ func (tb *treeBuilder) genTree(name string) (*jTree, error) {
 	}
 	t.deps = darr
 	if len(errs) > 0 {
-		errs = flatten(DependencyTreeError{
-			JobName: name,
-			Err:     MultiError(errs),
-		})
 		if len(errs) == 1 {
 			t.err = errs[0]
 		} else {
@@ -176,7 +172,12 @@ func appendErr(err *error, e error) {
 		*err = e
 		return
 	}
-	*err = MultiError(flatten(MultiError{*err, e}))
+	switch ee := (*err).(type) {
+	case MultiError:
+		*err = append(ee, e)
+	default:
+		*err = MultiError{ee, e}
+	}
 }
 
 // DependencyCycleError is an error indicating that there is a dependency cycle
@@ -227,7 +228,6 @@ func (tb *treeBuilder) checkCycle(parent *cycleChain, jt *jTree) error {
 		}
 	}
 	if len(errs) > 0 {
-		errs = flatten(MultiError(errs))
 		if len(errs) == 1 {
 			return errs[0]
 		}
