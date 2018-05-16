@@ -25,9 +25,6 @@ type Job interface {
 	Dependencies() ([]string, error)
 }
 
-//ErrCanceled should be returned by a Job.Run when cancelled
-var ErrCanceled = errors.New("job cancelled")
-
 // BasicJob is a simple type which implements Job.
 type BasicJob struct {
 	// JobName of the BasicJob.
