@@ -76,13 +76,29 @@ func (ex *executor) startDispatcher() {
 	ex.wg.Add(1)
 	go func() {
 		defer ex.wg.Done()
-		for j := range dispatch {
-			dt := &dispatchTracker{
-				job:   j,
-				notch: ex.notifych,
-				ctx:   ex.ctx,
+		ctxdone := ex.ctx.Done()
+		for {
+			select {
+			case j, ok := <-dispatch:
+				if !ok {
+					return
+				}
+				dt := &dispatchTracker{
+					job:   j,
+					notch: ex.notifych,
+					ctx:   ex.ctx,
+				}
+				ex.runner.DoTask(dt.task, dt)
+			case <-ctxdone:
+				for j := range dispatch { //drain dispatch buffer
+					ex.notifych <- notification{ //tell controller that they were canceled
+						job:   j,
+						state: stateCompleted,
+						err:   context.Canceled,
+					}
+				}
+				return
 			}
-			ex.runner.DoTask(dt.task, dt)
 		}
 	}()
 	ex.dispatchch = dispatch
