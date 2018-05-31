@@ -110,6 +110,7 @@ func (ex *executor) startDispatchBuffer() {
 	ex.wg.Add(1)
 	go func() {
 		defer ex.wg.Done()
+		defer close(ex.dispatchch)
 		buf := []Job{} //we dont care about order so just use a stack
 		for {
 			if len(buf) == 0 {
@@ -159,7 +160,7 @@ func (ex *executor) promise(name string) *Promise {
 		return p
 	}
 	jt := ex.forest[name]
-	return NewPromise(func(s FinishHandler, f FailHandler) {
+	p = NewPromise(func(s FinishHandler, f FailHandler) {
 		//if there is a pre-existing error (e.g. dependency cycle), bail out
 		if jt.err != nil {
 			f(jt.err)
@@ -194,13 +195,14 @@ func (ex *executor) promise(name string) *Promise {
 			},
 		)
 	})
+	ex.proms[name] = p
+	return p
 }
 
 func (ex *executor) execute() {
 	// start dispatcher/buffer
 	defer ex.wg.Wait()
 	ex.startDispatcher()
-	defer close(ex.dispatchch)
 	ex.startDispatchBuffer()
 	defer close(ex.bufch)
 

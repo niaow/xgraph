@@ -76,7 +76,7 @@ func TestRunner(t *testing.T) {
 					WorkRunner:   wp,
 					EventHandler: NoOpEventHandler,
 				}).Run(context.Background(), "test5")
-				if runstats["test5"] {
+				if !runstats["test5"] {
 					return errors.New("test did not run")
 				}
 				return nil
