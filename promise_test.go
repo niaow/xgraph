@@ -9,7 +9,7 @@ import (
 func timeout() func() {
 	finch := make(chan struct{})
 	go func() {
-		t := time.NewTimer(time.Second * 3)
+		t := time.NewTimer(time.Second * 10)
 		select {
 		case <-t.C:
 			panic(errors.New("timeout"))
