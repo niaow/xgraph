@@ -1,6 +1,8 @@
 package xgraph
 
-import "context"
+import (
+	"context"
+)
 
 //Runner is a tool to run graphs
 type Runner struct {

@@ -2,6 +2,7 @@ package xgraph
 
 import (
 	"io"
+	"log"
 	"runtime"
 	"sync"
 )
@@ -20,7 +21,10 @@ type Task func() error
 
 // Run runs a task on the local goroutine, using the tracker to notify of completion.
 func (t Task) Run(tracker WorkTracker) {
-	tracker.OnComplete(t())
+	err := t()
+	log.Println("notifying")
+	tracker.OnComplete(err)
+	log.Println("notified")
 }
 
 // poolWorkRunner is a WorkRunner implementation which uses a pool of goroutines.
@@ -61,9 +65,12 @@ type work struct {
 // worker is run in a goroutine to do work from the queue.
 // decrements the WaitGroup when it finishes.
 func (pwr *poolWorkRunner) worker() {
+	defer log.Println("worker done")
 	defer pwr.stop.Done()
 	for work := range pwr.workch {
+		log.Println("working")
 		work.task.Run(work.tracker)
+		log.Println("done working")
 	}
 }
 

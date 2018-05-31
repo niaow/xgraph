@@ -2,6 +2,7 @@ package xgraph
 
 import (
 	"context"
+	"log"
 	"sync"
 )
 
@@ -90,6 +91,7 @@ func (ex *executor) startDispatcher() {
 				}
 				ex.runner.DoTask(dt.task, dt)
 			case <-ctxdone:
+				log.Println("cancelling")
 				for j := range dispatch { //drain dispatch buffer
 					ex.notifych <- notification{ //tell controller that they were canceled
 						job:   j,
@@ -118,11 +120,7 @@ func (ex *executor) startDispatchBuffer() {
 				if !ok {
 					return
 				}
-				select {
-				case ex.dispatchch <- j:
-				default:
-					buf = append(buf, j)
-				}
+				buf = append(buf, j)
 			} else {
 				select {
 				case j, ok := <-bufch:
@@ -155,47 +153,45 @@ func (ex *executor) runJob(jt *jTree) *Promise {
 
 // promise returns a promise that resolves when a given job finished building
 func (ex *executor) promise(name string) *Promise {
-	p := ex.proms[name]
-	if p != nil {
-		return p
-	}
-	jt := ex.forest[name]
-	p = NewPromise(func(s FinishHandler, f FailHandler) {
-		//if there is a pre-existing error (e.g. dependency cycle), bail out
-		if jt.err != nil {
-			f(jt.err)
-			return
-		}
-		//prep dep promise
-		var dps *Promise
-		if len(jt.deps) > 0 {
-			depps := make([]*Promise, len(jt.deps))
-			for i, v := range jt.deps {
-				depps[i] = ex.promise(v.name)
+	var p *Promise
+	for p = ex.proms[name]; p == nil; p = ex.proms[name] {
+		jt := ex.forest[name]
+		ex.proms[name] = NewPromise(func(s FinishHandler, f FailHandler) {
+			//if there is a pre-existing error (e.g. dependency cycle), bail out
+			if jt.err != nil {
+				f(jt.err)
+				return
 			}
-			dps = NewMultiPromise(depps...)
-		} else {
-			dps = NewPromise(func(s FinishHandler, f FailHandler) {
-				s()
-			})
-		}
-		//run dep promise
-		dps.Then(
-			func() { //on success, run build
-				sr, err := jt.job.ShouldRun() //check if the job should run
-				if err != nil {               //error out if we cant tell whether it should be run
+			//prep dep promise
+			var dps *Promise
+			if len(jt.deps) > 0 {
+				depps := make([]*Promise, len(jt.deps))
+				for i, v := range jt.deps {
+					depps[i] = ex.promise(v.name)
+				}
+				dps = NewMultiPromise(depps...)
+			} else {
+				dps = NewPromise(func(s FinishHandler, f FailHandler) {
+					s()
+				})
+			}
+			//run dep promise
+			dps.Then(
+				func() { //on success, run build
+					sr, err := jt.job.ShouldRun() //check if the job should run
+					if err != nil {               //error out if we cant tell whether it should be run
+						f(err)
+					}
+					if sr {
+						ex.runJob(jt).Then(s, f)
+					}
+				},
+				func(err error) {
 					f(err)
-				}
-				if sr {
-					ex.runJob(jt).Then(s, f)
-				}
-			},
-			func(err error) {
-				f(err)
-			},
-		)
-	})
-	ex.proms[name] = p
+				},
+			)
+		})
+	}
 	return p
 }
 
@@ -234,6 +230,7 @@ func (ex *executor) execute() {
 		case stateCompleted:
 			ex.cbset[not.job.Name()](not.err)
 		}
+		log.Printf("n = %d", n)
 	}
 
 	//we are done!

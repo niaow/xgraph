@@ -3,29 +3,37 @@ package xgraph
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 )
 
 func TestRunner(t *testing.T) {
 	//run statuses
+	var lck sync.Mutex
 	runstats := map[string]bool{}
 
 	//create graph to use for tests
 	g := New().AddJob(BasicJob{
 		JobName: "test1",
 		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
 			runstats["test1"] = true
 			return nil
 		},
 	}).AddJob(BasicJob{
 		JobName: "test2",
 		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
 			runstats["test2"] = true
 			return nil
 		},
 	}).AddJob(BasicJob{
 		JobName: "test3",
 		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
 			runstats["test3"] = true
 			return nil
 		},
@@ -33,6 +41,8 @@ func TestRunner(t *testing.T) {
 		JobName: "test4",
 		Deps:    []string{"test3"},
 		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
 			runstats["test4"] = true
 			return nil
 		},
@@ -40,6 +50,8 @@ func TestRunner(t *testing.T) {
 		JobName: "test5",
 		Deps:    []string{"test4"},
 		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
 			runstats["test5"] = true
 			return errors.New("bad")
 		},
