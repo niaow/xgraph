@@ -134,7 +134,6 @@ func listContains(list []string, val string) bool {
 type cycleChain struct {
 	name   string
 	parent *cycleChain
-	usedBy map[string]struct{}
 }
 
 // jTreeNames takes a slice of *jTree and returns a sorted slice of the names
@@ -156,10 +155,10 @@ func names2map(names []string) map[string]struct{} {
 }
 
 // sub returns a cycleChain with this cycleChain as the parent
-func (cc *cycleChain) sub(usedby []string) *cycleChain {
+func (cc *cycleChain) sub(name string) *cycleChain {
 	return &cycleChain{
+		name:   name,
 		parent: cc,
-		usedBy: names2map(usedby),
 	}
 }
 
@@ -189,7 +188,7 @@ func (dce DependencyCycleError) Error() string {
 
 // check recurses the *cycleChain to check if there is a dependency cycle with the given name
 func (cc *cycleChain) check(name string) error {
-	if _, found := cc.usedBy[name]; found {
+	if cc.name == name {
 		return DependencyCycleError{name, cc.name}
 	}
 	if cc.parent == nil {
@@ -204,13 +203,13 @@ func (cc *cycleChain) check(name string) error {
 
 // chainRoot is a *cycleChain which has no parent
 var chainRoot = &cycleChain{
+	name:   "",
 	parent: nil,
-	usedBy: map[string]struct{}{},
 }
 
 func (tb *treeBuilder) checkCycle(parent *cycleChain, jt *jTree) error {
 	deps := jTreeNames(jt.deps)
-	cc := parent.sub(jTreeNames(jt.usedby))
+	cc := parent.sub(jt.name)
 	errs := []error{}
 	for _, v := range deps {
 		e := cc.check(v) //check to see if dep causes a cycle

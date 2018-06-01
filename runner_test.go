@@ -61,7 +61,7 @@ func TestRunner(t *testing.T) {
 		RunCallback: func() error {
 			lck.Lock()
 			defer lck.Unlock()
-			runstats["test5"] = true
+			runstats["test6"] = true
 			return errors.New("bad")
 		},
 	}).AddJob(BasicJob{
@@ -70,7 +70,7 @@ func TestRunner(t *testing.T) {
 		RunCallback: func() error {
 			lck.Lock()
 			defer lck.Unlock()
-			runstats["test5"] = true
+			runstats["test7"] = true
 			return errors.New("bad")
 		},
 	}).AddJob(BasicJob{
@@ -79,7 +79,7 @@ func TestRunner(t *testing.T) {
 		RunCallback: func() error {
 			lck.Lock()
 			defer lck.Unlock()
-			runstats["test5"] = true
+			runstats["test8"] = true
 			return errors.New("bad")
 		},
 	})
