@@ -82,6 +82,23 @@ func TestRunner(t *testing.T) {
 			runstats["test8"] = true
 			return errors.New("bad")
 		},
+	}).AddJob(BasicJob{
+		JobName: "test9",
+		Deps:    []string{"test10"},
+		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
+			runstats["test9"] = true
+			return nil
+		},
+	}).AddJob(BasicJob{
+		JobName: "test10",
+		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
+			runstats["test10"] = true
+			return errors.New("bad")
+		},
 	})
 
 	//test table
@@ -139,6 +156,24 @@ func TestRunner(t *testing.T) {
 				return nil
 			},
 			Expect: []interface{}{nil},
+		}, {
+			Name: "depfail",
+			Func: func() error {
+				defer timeout()()
+				wp := NewWorkPool(1)
+				defer wp.Close()
+				eh := &errCheckEventHandler{m: make(map[string]error)}
+				(&Runner{
+					Graph:        g,
+					WorkRunner:   wp,
+					EventHandler: eh,
+				}).Run(context.Background(), "test9")
+				if runstats["test9"] {
+					return errors.New("test ran")
+				}
+				return eh.m["test9"]
+			},
+			Expect: []interface{}{BuildDependencyError{"test10"}},
 		},
 	}
 
@@ -146,4 +181,13 @@ func TestRunner(t *testing.T) {
 	for _, tv := range tests {
 		tv.genTest(t)
 	}
+}
+
+type errCheckEventHandler struct {
+	m map[string]error
+	nophandler
+}
+
+func (eceh *errCheckEventHandler) OnError(name string, err error) {
+	eceh.m[name] = err
 }
