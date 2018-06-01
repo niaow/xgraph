@@ -208,22 +208,21 @@ var chainRoot = &cycleChain{
 }
 
 func (tb *treeBuilder) checkCycle(parent *cycleChain, jt *jTree) error {
+	if err := parent.check(jt.name); err != nil {
+		return err
+	}
 	deps := jTreeNames(jt.deps)
 	cc := parent.sub(jt.name)
 	errs := []error{}
 	for _, v := range deps {
-		e := cc.check(v) //check to see if dep causes a cycle
+		// check for cycles in deps
+		dt := tb.forest[v]
+		if dt == nil {
+			continue
+		}
+		e := tb.checkCycle(cc, dt)
 		if e != nil {
-			errs = append(errs, e)
-		} else { //check for cycles in dep
-			dt := tb.forest[v]
-			if dt == nil {
-				continue
-			}
-			e = tb.checkCycle(cc, dt)
-			if e != nil {
-				errs = append(errs, e)
-			}
+			return e
 		}
 	}
 	if len(errs) > 0 {
