@@ -112,11 +112,7 @@ func (tb *treeBuilder) genTree(name string) (*jTree, error) {
 	}
 	t.deps = darr
 	if len(errs) > 0 {
-		if len(errs) == 1 {
-			t.err = errs[0]
-		} else {
-			t.err = MultiError(errs)
-		}
+		t.err = errs[0]
 	}
 
 	return t, nil
@@ -159,23 +155,6 @@ func (cc *cycleChain) sub(name string) *cycleChain {
 	return &cycleChain{
 		name:   name,
 		parent: cc,
-	}
-}
-
-// appendErr adds an error to a another error
-func appendErr(err *error, e error) {
-	if e == nil {
-		return
-	}
-	if *err == nil {
-		*err = e
-		return
-	}
-	switch ee := (*err).(type) {
-	case MultiError:
-		*err = append(ee, e)
-	default:
-		*err = MultiError{ee, e}
 	}
 }
 
@@ -226,7 +205,9 @@ func (tb *treeBuilder) findCycles() []*jTree {
 	for _, v := range tb.forest {
 		err := tb.checkCycle(chainRoot, v)
 		if err != nil {
-			appendErr(&v.err, err)
+			if v.err == nil {
+				v.err = err
+			}
 			cTrees = append(cTrees, v)
 		}
 	}

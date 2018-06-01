@@ -101,7 +101,7 @@ func TestRunner(t *testing.T) {
 		},
 	}).AddJob(BasicJob{
 		JobName: "test11",
-		Deps:    []string{"t"},
+		Deps:    []string{"t", "test13"},
 		RunCallback: func() error {
 			lck.Lock()
 			defer lck.Unlock()
