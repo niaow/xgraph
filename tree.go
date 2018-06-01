@@ -223,7 +223,7 @@ func (tb *treeBuilder) checkCycle(parent *cycleChain, jt *jTree) error {
 			}
 			e = tb.checkCycle(cc, dt)
 			if e != nil {
-				errs = append(errs, e)
+				return e
 			}
 		}
 	}
