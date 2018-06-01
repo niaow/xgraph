@@ -211,25 +211,12 @@ func (tb *treeBuilder) checkCycle(parent *cycleChain, jt *jTree) error {
 	if err := parent.check(jt.name); err != nil {
 		return err
 	}
-	deps := jTreeNames(jt.deps)
-	cc := parent.sub(jt.name)
-	errs := []error{}
-	for _, v := range deps {
-		// check for cycles in deps
-		dt := tb.forest[v]
-		if dt == nil {
-			continue
+	sub := parent.sub(jt.name)
+	for _, v := range jt.deps {
+		err := tb.checkCycle(sub, v)
+		if err != nil {
+			return err
 		}
-		e := tb.checkCycle(cc, dt)
-		if e != nil {
-			return e
-		}
-	}
-	if len(errs) > 0 {
-		if len(errs) == 1 {
-			return errs[0]
-		}
-		return MultiError(errs)
 	}
 	return nil
 }
