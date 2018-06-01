@@ -55,6 +55,33 @@ func TestRunner(t *testing.T) {
 			runstats["test5"] = true
 			return errors.New("bad")
 		},
+	}).AddJob(BasicJob{
+		JobName: "test6",
+		Deps:    []string{"test8"},
+		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
+			runstats["test5"] = true
+			return errors.New("bad")
+		},
+	}).AddJob(BasicJob{
+		JobName: "test7",
+		Deps:    []string{"test6", "test8"},
+		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
+			runstats["test5"] = true
+			return errors.New("bad")
+		},
+	}).AddJob(BasicJob{
+		JobName: "test8",
+		Deps:    []string{"test7"},
+		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
+			runstats["test5"] = true
+			return errors.New("bad")
+		},
 	})
 
 	//test table
@@ -78,7 +105,7 @@ func TestRunner(t *testing.T) {
 			Expect: []interface{}{nil},
 		},
 		{
-			Name: "cycle",
+			Name: "multilevel",
 			Func: func() error {
 				defer timeout()()
 				wp := NewWorkPool(1)
@@ -90,6 +117,24 @@ func TestRunner(t *testing.T) {
 				}).Run(context.Background(), "test5")
 				if !runstats["test5"] {
 					return errors.New("test did not run")
+				}
+				return nil
+			},
+			Expect: []interface{}{nil},
+		},
+		{
+			Name: "cycle",
+			Func: func() error {
+				defer timeout()()
+				wp := NewWorkPool(1)
+				defer wp.Close()
+				(&Runner{
+					Graph:        g,
+					WorkRunner:   wp,
+					EventHandler: NoOpEventHandler,
+				}).Run(context.Background(), "test7")
+				if runstats["test7"] {
+					return errors.New("test ran")
 				}
 				return nil
 			},
