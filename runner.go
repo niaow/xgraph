@@ -32,13 +32,15 @@ func (r *Runner) Run(ctx context.Context, targets ...string) {
 
 	//run build
 	ex := &executor{
-		forest:   tb.forest,
-		runner:   wr,
-		notifych: make(chan notification),
-		evh:      r.EventHandler,
-		proms:    make(map[string]*Promise),
-		cbset:    make(map[string]func(error)),
-		ctx:      ctx,
+		forest:     tb.forest,
+		runner:     wr,
+		notifych:   make(chan notification),
+		evh:        r.EventHandler,
+		proms:      make(map[string]*Promise),
+		cbset:      make(map[string]func(error)),
+		dispatchch: make(chan Job),
+		bufch:      make(chan Job),
+		ctx:        ctx,
 	}
 	ex.execute()
 }

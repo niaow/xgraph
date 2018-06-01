@@ -54,9 +54,9 @@ type executor struct {
 	// wg is a sync.WaitGroup used to track shutdown of the executor
 	wg sync.WaitGroup
 	// dispatchch is a channel going to a goroutine which dispatches jobs
-	dispatchch chan<- Job
+	dispatchch chan Job
 	// bufch is a channel going to a goroutine which buffers jobs and relays them to runch
-	bufch chan<- Job
+	bufch chan Job
 	// notifych is a channel carrying notifications from the running jobs
 	notifych chan notification
 	// evh is the EventHandler being used to track this build
@@ -72,7 +72,7 @@ type executor struct {
 // startDispatcher populates dispatchch and starts a goroutine which dispatches jobs
 // stops on channel close and uses the WaitGroup
 func (ex *executor) startDispatcher() {
-	dispatch := make(chan Job)
+	dispatch := ex.dispatchch
 	ex.wg.Add(1)
 	go func() {
 		defer ex.wg.Done()
@@ -106,7 +106,7 @@ func (ex *executor) startDispatcher() {
 
 // startDispatchBuffer starts a goroutine which buffers dispatches between bufch and dispatchch
 func (ex *executor) startDispatchBuffer() {
-	bufch := make(chan Job)
+	bufch := ex.bufch
 	ex.wg.Add(1)
 	go func() {
 		defer ex.wg.Done()
