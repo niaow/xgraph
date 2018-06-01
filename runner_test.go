@@ -99,6 +99,33 @@ func TestRunner(t *testing.T) {
 			runstats["test10"] = true
 			return errors.New("bad")
 		},
+	}).AddJob(BasicJob{
+		JobName: "test11",
+		Deps:    []string{"t"},
+		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
+			runstats["test11"] = true
+			return errors.New("bad")
+		},
+	}).AddJob(BasicJob{
+		JobName: "test12",
+		Deps:    []string{"test13"},
+		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
+			runstats["test12"] = true
+			return errors.New("bad")
+		},
+	}).AddJob(BasicJob{
+		JobName: "test13",
+		Deps:    []string{"test12", "test11"},
+		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
+			runstats["test13"] = true
+			return errors.New("bad")
+		},
 	})
 
 	//test table
@@ -156,8 +183,9 @@ func TestRunner(t *testing.T) {
 				return nil
 			},
 			Expect: []interface{}{nil},
-		}, {
-			Name: "depfail",
+		},
+		{
+			Name: "depfail-missing",
 			Func: func() error {
 				defer timeout()()
 				wp := NewWorkPool(1)
@@ -167,13 +195,13 @@ func TestRunner(t *testing.T) {
 					Graph:        g,
 					WorkRunner:   wp,
 					EventHandler: eh,
-				}).Run(context.Background(), "test9")
-				if runstats["test9"] {
+				}).Run(context.Background(), "test11")
+				if runstats["test11"] {
 					return errors.New("test ran")
 				}
-				return eh.m["test9"]
+				return eh.m["test11"]
 			},
-			Expect: []interface{}{BuildDependencyError{"test10"}},
+			Expect: []interface{}{JobNotFoundError("t")},
 		},
 	}
 
