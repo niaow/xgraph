@@ -1,6 +1,9 @@
 package xgraph
 
 import (
+	"fmt"
+	"sort"
+	"strings"
 	"sync"
 )
 
@@ -114,6 +117,48 @@ func NewMultiPromise(p ...*Promise) *Promise {
 					meh()
 				},
 			)
+		}
+	})
+}
+
+// BuildDependencyError is an error indicating that dependencies failed
+type BuildDependencyError []string
+
+func (bde BuildDependencyError) Error() string {
+	return fmt.Sprintf("dependencies failed: (%s)", strings.Join([]string(bde), ","))
+}
+
+func newBuildPromise(deps map[string]*Promise) *Promise {
+	return NewPromise(func(s FinishHandler, f FailHandler) {
+		fails := make(map[string]struct{})
+		n := len(deps)
+		meh := func() {
+			if n == 0 {
+				if len(fails) == 0 {
+					s()
+				} else {
+					flst := make([]string, len(fails))
+					i := 0
+					for n := range fails {
+						flst[i] = n
+						i++
+					}
+					sort.Strings(flst)
+					f(BuildDependencyError(flst))
+				}
+				fails = nil
+			}
+		}
+		for i, v := range deps {
+			name := i
+			v.Then(func() {
+				n--
+				meh()
+			}, func(error) {
+				n--
+				fails[name] = struct{}{}
+				meh()
+			})
 		}
 	})
 }

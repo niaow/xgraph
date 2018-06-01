@@ -160,19 +160,21 @@ func (ex *executor) promise(name string) *Promise {
 				f(jt.err)
 				return
 			}
+
 			//prep dep promise
 			var dps *Promise
 			if len(jt.deps) > 0 {
-				depps := make([]*Promise, len(jt.deps))
-				for i, v := range jt.deps {
-					depps[i] = ex.promise(v.name)
+				depps := make(map[string]*Promise)
+				for _, v := range jt.deps {
+					depps[v.name] = ex.promise(v.name)
 				}
-				dps = NewMultiPromise(depps...)
+				dps = newBuildPromise(depps)
 			} else {
 				dps = NewPromise(func(s FinishHandler, f FailHandler) {
 					s()
 				})
 			}
+
 			//run dep promise
 			dps.Then(
 				func() { //on success, run build
