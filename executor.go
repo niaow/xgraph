@@ -2,7 +2,6 @@ package xgraph
 
 import (
 	"context"
-	"log"
 	"sync"
 )
 
@@ -19,7 +18,7 @@ type dispatchTracker struct {
 func (dt *dispatchTracker) OnComplete(err error) {
 	dt.notch <- notification{
 		job:   dt.job,
-		state: 2,
+		state: stateCompleted,
 		err:   err,
 	}
 }
@@ -27,7 +26,7 @@ func (dt *dispatchTracker) OnComplete(err error) {
 func (dt *dispatchTracker) task() error {
 	dt.notch <- notification{
 		job:   dt.job,
-		state: 1,
+		state: stateStarted,
 	}
 	err := dt.job.Run(dt.ctx)
 	return err
@@ -91,7 +90,6 @@ func (ex *executor) startDispatcher() {
 				}
 				ex.runner.DoTask(dt.task, dt)
 			case <-ctxdone:
-				log.Println("cancelling")
 				for j := range dispatch { //drain dispatch buffer
 					ex.notifych <- notification{ //tell controller that they were canceled
 						job:   j,
@@ -230,7 +228,6 @@ func (ex *executor) execute() {
 		case stateCompleted:
 			ex.cbset[not.job.Name()](not.err)
 		}
-		log.Printf("n = %d", n)
 	}
 
 	//we are done!

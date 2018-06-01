@@ -34,7 +34,10 @@ func (p *Promise) Then(success FinishHandler, failure FailHandler) {
 		if failure != nil {
 			p.efs = append(p.efs, failure)
 		}
-		p.fun(p.onFinish, p.onFail)
+		if !p.started {
+			p.fun(p.onFinish, p.onFail)
+			p.started = true
+		}
 	}
 }
 

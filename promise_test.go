@@ -2,6 +2,7 @@ package xgraph
 
 import (
 	"errors"
+	"sync"
 	"testing"
 	"time"
 )
@@ -88,6 +89,28 @@ func TestPromise(t *testing.T) {
 				})
 				p.Then(func() {}, func(err error) {})
 				p.Then(func() {}, func(err error) {})
+				return runs
+			},
+			Expect: []interface{}{1},
+		},
+		{
+			Name: "concurrent-single-start",
+			Func: func() int {
+				defer timeout()()
+				runs := 0
+				var lck sync.Mutex
+				lck.Lock()
+				p := NewPromise(func(s FinishHandler, f FailHandler) {
+					runs++
+					go func() {
+						lck.Lock()
+						defer lck.Unlock()
+						s()
+					}()
+				})
+				p.Then(func() {}, func(err error) {})
+				p.Then(func() {}, func(err error) {})
+				lck.Unlock()
 				return runs
 			},
 			Expect: []interface{}{1},
