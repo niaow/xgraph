@@ -184,6 +184,8 @@ func (ex *executor) promise(name string) *Promise {
 					}
 					if sr {
 						ex.runJob(jt).Then(s, f)
+					} else {
+						s()
 					}
 				},
 				func(err error) {

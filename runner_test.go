@@ -126,6 +126,17 @@ func TestRunner(t *testing.T) {
 			runstats["test13"] = true
 			return errors.New("bad")
 		},
+	}).AddJob(BasicJob{
+		JobName: "test14",
+		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
+			runstats["test14"] = true
+			return nil
+		},
+		ShouldRunCallback: func() (bool, error) {
+			return false, nil
+		},
 	})
 
 	//test table
@@ -143,6 +154,24 @@ func TestRunner(t *testing.T) {
 				}).Run(context.Background(), "test1")
 				if !runstats["test1"] {
 					return errors.New("test did not run")
+				}
+				return nil
+			},
+			Expect: []interface{}{nil},
+		},
+		{
+			Name: "norun",
+			Func: func() error {
+				defer timeout()()
+				wp := NewWorkPool(1)
+				defer wp.Close()
+				(&Runner{
+					Graph:        g,
+					WorkRunner:   wp,
+					EventHandler: NoOpEventHandler,
+				}).Run(context.Background(), "test14")
+				if runstats["test14"] {
+					return errors.New("test should not have run")
 				}
 				return nil
 			},
