@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"sync"
 )
 
 // Promise is a future
@@ -80,45 +79,6 @@ func NewPromise(fun func(FinishHandler, FailHandler)) *Promise {
 		sfs: []FinishHandler{},
 		efs: []FailHandler{},
 	}
-}
-
-// NewMultiPromise returns a Promise which is fullfilled when all of the promises are fullfilled.
-// If one promise fails, this error will be propogated.
-// If multiple promises fail, a MultiError will be sent to the FailHandler instead.
-func NewMultiPromise(p ...*Promise) *Promise {
-	return NewPromise(func(s FinishHandler, f FailHandler) {
-		var lck sync.Mutex
-		n := len(p)
-		errs := []error{}
-		meh := func() {
-			if n == 0 {
-				if len(errs) == 1 {
-					f(errs[0])
-				} else if len(errs) > 1 {
-					f(MultiError(errs))
-				} else {
-					s()
-				}
-			}
-		}
-		for _, v := range p {
-			v.Then(
-				func() {
-					lck.Lock()
-					defer lck.Unlock()
-					n--
-					meh()
-				},
-				func(err error) {
-					lck.Lock()
-					defer lck.Unlock()
-					errs = append(errs, err)
-					n--
-					meh()
-				},
-			)
-		}
-	})
 }
 
 // BuildDependencyError is an error indicating that dependencies failed

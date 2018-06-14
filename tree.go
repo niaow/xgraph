@@ -1,7 +1,6 @@
 package xgraph
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -12,53 +11,6 @@ type jTree struct {
 	err      error
 	job      Job
 	deps     []*jTree
-	usedby   []*jTree
-}
-
-// isReady checks if all of the dependencies of the *jTree have completed
-func (jt *jTree) isReady() bool {
-	if len(jt.deps) == 0 {
-		return true
-	}
-	for _, d := range jt.deps {
-		if !d.finished {
-			return false
-		}
-	}
-	return true
-}
-
-//DepFailError is an error type indicating that a job could not be run because a dependency failed
-type DepFailError struct {
-	//JobName is the name of the job which could not be run
-	JobName string
-
-	//FailedDeps is the list of dependencies which failed
-	FailedDeps []string
-}
-
-func (dfe DepFailError) Error() string {
-	strs := make([]string, len(dfe.FailedDeps))
-	for i, v := range dfe.FailedDeps {
-		strs[i] = fmt.Sprintf("%q", v)
-	}
-	return fmt.Sprintf("could not run %q because dependencies failed (failures: %s)", dfe.JobName, strings.Join(strs, ", "))
-}
-
-func (jt *jTree) depFail() error {
-	fails := []string{}
-	for _, v := range jt.deps {
-		if v.err != nil {
-			fails = append(fails, v.name)
-		}
-	}
-	if len(fails) > 0 {
-		return DepFailError{
-			JobName:    jt.name,
-			FailedDeps: fails,
-		}
-	}
-	return nil
 }
 
 type treeBuilder struct {
@@ -78,7 +30,6 @@ func (tb *treeBuilder) genTree(name string) (*jTree, error) {
 	t = new(jTree)
 	tb.forest[name] = t
 	t.name = name
-	t.usedby = []*jTree{}
 	t.deps = []*jTree{}
 
 	//lookup job
@@ -106,7 +57,6 @@ func (tb *treeBuilder) genTree(name string) (*jTree, error) {
 		if err != nil {
 			errs = append(errs, err)
 		}
-		d.usedby = append(d.usedby, t) //mark dep as used by this
 		darr[i] = d
 	}
 	t.deps = darr
