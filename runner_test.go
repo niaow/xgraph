@@ -12,6 +12,8 @@ func TestRunner(t *testing.T) {
 	var lck sync.Mutex
 	runstats := map[string]bool{}
 
+	cs := make(chan struct{})
+
 	//create graph to use for tests
 	g := New().AddJob(BasicJob{
 		JobName: "test1",
@@ -137,6 +139,11 @@ func TestRunner(t *testing.T) {
 		ShouldRunCallback: func() (bool, error) {
 			return false, nil
 		},
+	}).AddJob(cancelJob{
+		BasicJob: BasicJob{
+			JobName: "test15",
+		},
+		start: cs,
 	})
 
 	//test table
@@ -232,6 +239,30 @@ func TestRunner(t *testing.T) {
 			},
 			Expect: []interface{}{JobNotFoundError("t")},
 		},
+		{
+			Name: "cancel",
+			Func: func() error {
+				defer timeout()()
+				wp := NewWorkPool(1)
+				defer wp.Close()
+				eh := &errCheckEventHandler{m: make(map[string]error)}
+				ctx, cancel := context.WithCancel(context.Background())
+				go func() {
+					<-cs
+					cancel()
+				}()
+				(&Runner{
+					Graph:        g,
+					WorkRunner:   wp,
+					EventHandler: eh,
+				}).Run(ctx, "test15")
+				if runstats["test15"] {
+					return errors.New("test ran")
+				}
+				return eh.m["test15"]
+			},
+			Expect: []interface{}{context.Canceled},
+		},
 	}
 
 	//run tests
@@ -247,4 +278,15 @@ type errCheckEventHandler struct {
 
 func (eceh *errCheckEventHandler) OnError(name string, err error) {
 	eceh.m[name] = err
+}
+
+type cancelJob struct {
+	BasicJob
+	start chan struct{}
+}
+
+func (cj cancelJob) Run(ctx context.Context) error {
+	close(cj.start)
+	<-ctx.Done()
+	return ctx.Err()
 }
