@@ -29,9 +29,9 @@ func benchmarkTreeDeps(b *testing.B, g *Graph, w int, tarjan bool) {
 		}
 
 		if tarjan {
-			tb.findCyclesTarjan()
-		} else {
 			tb.findCycles()
+		} else {
+			tb.findCyclesOld()
 		}
 	}
 }

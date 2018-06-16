@@ -115,7 +115,7 @@ func (di depIndex) checkDeps(node int, bs *backStack) (int, bool) {
 	return -1, false
 }
 
-func (tb *treeBuilder) findCyclesTarjan() [][]string {
+func (tb *treeBuilder) findCycles() []*jTree {
 	graph := make(map[interface{}][]interface{})
 	for name, job := range tb.g.jobs {
 		deps, _ := job.Dependencies()
@@ -127,18 +127,36 @@ func (tb *treeBuilder) findCyclesTarjan() [][]string {
 	}
 
 	issues := tarjan.Connections(graph)
-	var results [][]string
+
+	results := []*jTree{}
 	for _, issue := range issues {
-		p := []string{}
-		for _, elem := range issue {
-			p = append(p, elem.(string))
+		if len(issue) == 0 {
+			continue
 		}
-		results = append(results, p)
+		component := []string{}
+		for _, elem := range issue {
+			component = append(component, elem.(string))
+		}
+
+		for _, elem := range issue {
+			job := tb.forest[elem.(string)]
+			if job == nil {
+				continue
+			}
+			if job.err == nil {
+				job.err = DependencyCycleError(component)
+			}
+			results = append(results, job)
+		}
 	}
-	return results
+
+	if len(results) > 0 {
+		return results
+	}
+	return nil
 }
 
-func (tb *treeBuilder) findCycles() []*jTree {
+func (tb *treeBuilder) findCyclesOld() []*jTree {
 	//generate string-int mapping tables
 	s2n := make(map[string]int)
 	n2s := []string{}
