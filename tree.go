@@ -2,6 +2,8 @@ package xgraph
 
 import (
 	"strings"
+
+	"github.com/looplab/tarjan"
 )
 
 type jTree struct {
@@ -111,6 +113,29 @@ func (di depIndex) checkDeps(node int, bs *backStack) (int, bool) {
 	}
 	bs.drop()
 	return -1, false
+}
+
+func (tb *treeBuilder) findCyclesTarjan() [][]string {
+	graph := make(map[interface{}][]interface{})
+	for name, job := range tb.g.jobs {
+		deps, _ := job.Dependencies()
+		gdeps := make([]interface{}, len(deps))
+		for i := range gdeps {
+			gdeps[i] = deps[i]
+		}
+		graph[name] = gdeps
+	}
+
+	issues := tarjan.Connections(graph)
+	var results [][]string
+	for _, issue := range issues {
+		p := []string{}
+		for _, elem := range issue {
+			p = append(p, elem.(string))
+		}
+		results = append(results, p)
+	}
+	return results
 }
 
 func (tb *treeBuilder) findCycles() []*jTree {

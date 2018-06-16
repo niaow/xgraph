@@ -6,14 +6,20 @@ import (
 )
 
 func BenchmarkTreeDeps8x8(b *testing.B) {
-	benchmarkTreeDeps(b, graph8x8, 8)
+	benchmarkTreeDeps(b, graph8x8, 8, false)
+}
+func BenchmarkTreeDeps8x8Tarjan(b *testing.B) {
+	benchmarkTreeDeps(b, graph8x8, 8, true)
 }
 
-func BenchmarkTreeDeps64x8(b *testing.B) {
-	benchmarkTreeDeps(b, graph64x8, 64)
+func BenchmarkTreeDeps16x8(b *testing.B) {
+	benchmarkTreeDeps(b, graph16x8, 16, false)
+}
+func BenchmarkTreeDeps16x8Tarjan(b *testing.B) {
+	benchmarkTreeDeps(b, graph16x8, 16, true)
 }
 
-func benchmarkTreeDeps(b *testing.B, g *Graph, w int) {
+func benchmarkTreeDeps(b *testing.B, g *Graph, w int, tarjan bool) {
 	for i := 0; i < b.N; i++ {
 		tb := &treeBuilder{
 			forest: make(map[string]*jTree),
@@ -24,12 +30,16 @@ func benchmarkTreeDeps(b *testing.B, g *Graph, w int) {
 			tb.genTree(jobname(0, i))
 		}
 
-		tb.findCycles()
+		if tarjan {
+			tb.findCyclesTarjan()
+		} else {
+			tb.findCycles()
+		}
 	}
 }
 
 var graph8x8 = denseValidGraph(8, 8)
-var graph64x8 = denseValidGraph(64, 8)
+var graph16x8 = denseValidGraph(16, 8)
 
 func denseValidGraph(layerCount, width int) *Graph {
 	g := New()
