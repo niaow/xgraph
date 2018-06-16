@@ -5,18 +5,16 @@ import (
 	"testing"
 )
 
-func BenchmarkTreeDeps8x8(b *testing.B) {
-	benchmarkTreeDeps(b, graph8x8, 8, false)
-}
-func BenchmarkTreeDeps8x8Tarjan(b *testing.B) {
-	benchmarkTreeDeps(b, graph8x8, 8, true)
-}
-
-func BenchmarkTreeDeps16x8(b *testing.B) {
-	benchmarkTreeDeps(b, graph16x8, 16, false)
-}
-func BenchmarkTreeDeps16x8Tarjan(b *testing.B) {
-	benchmarkTreeDeps(b, graph16x8, 16, true)
+func BenchmarkTreeDeps(b *testing.B) {
+	for _, depth := range []int{4, 8, 10} {
+		g := denseValidGraph(depth, 8)
+		b.Run(fmt.Sprintf("%d", depth), func(b *testing.B) {
+			benchmarkTreeDeps(b, g, 8, false)
+		})
+		b.Run(fmt.Sprintf("%dTarjan", depth), func(b *testing.B) {
+			benchmarkTreeDeps(b, g, 8, true)
+		})
+	}
 }
 
 func benchmarkTreeDeps(b *testing.B, g *Graph, w int, tarjan bool) {
@@ -37,9 +35,6 @@ func benchmarkTreeDeps(b *testing.B, g *Graph, w int, tarjan bool) {
 		}
 	}
 }
-
-var graph8x8 = denseValidGraph(8, 8)
-var graph16x8 = denseValidGraph(16, 8)
 
 func denseValidGraph(layerCount, width int) *Graph {
 	g := New()
