@@ -130,7 +130,7 @@ func (tb *treeBuilder) findCycles() []*jTree {
 
 	results := []*jTree{}
 	for _, issue := range issues {
-		if len(issue) == 0 {
+		if len(issue) <= 1 {
 			continue
 		}
 		component := []string{}
