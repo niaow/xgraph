@@ -3,6 +3,10 @@ image: golang:1.10
 stages:
   - test
 
+before_script:
+  - ln -s /go/src/gitlab.com/jadr2ddude/xgraph $CI_PROJECT_DIR
+  - go get -v gitlab.com/jadr2ddude/xgraph/...
+
 go_test:
   stage: test
   script:
