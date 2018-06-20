@@ -4,10 +4,10 @@ stages:
   - test
 
 before_script:
-  - ln -s /go/src/gitlab.com/jadr2ddude/xgraph $CI_PROJECT_DIR
+  - cp -r /go/src/_/builds/jadr2ddude/xgraph /go/src/gitlab.com/jadr2ddude/xgraph
   - go get -v gitlab.com/jadr2ddude/xgraph/...
 
 go_test:
   stage: test
   script:
-    - go test
+    - go test gitlab.com/jadr2ddude/xgraph
