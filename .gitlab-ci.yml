@@ -1,0 +1,9 @@
+image: golang:1.10
+
+stages:
+  - test
+
+go_test:
+  stage: test
+  script:
+    - go test
