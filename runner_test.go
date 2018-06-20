@@ -144,6 +144,15 @@ func TestRunner(t *testing.T) {
 			JobName: "test15",
 		},
 		start: cs,
+	}).AddJob(BasicJob{
+		JobName: "test16",
+		Deps:    []string{"test16"},
+		RunCallback: func() error {
+			lck.Lock()
+			defer lck.Unlock()
+			runstats["test16"] = true
+			return nil
+		},
 	})
 
 	//test table
@@ -262,6 +271,24 @@ func TestRunner(t *testing.T) {
 				return eh.m["test15"]
 			},
 			Expect: []interface{}{context.Canceled},
+		},
+		{
+			Name: "self-cycle",
+			Func: func() error {
+				defer timeout()()
+				wp := NewWorkPool(1)
+				defer wp.Close()
+				(&Runner{
+					Graph:        g,
+					WorkRunner:   wp,
+					EventHandler: NoOpEventHandler,
+				}).Run(context.Background(), "test16")
+				if runstats["test16"] {
+					return errors.New("test ran")
+				}
+				return nil
+			},
+			Expect: []interface{}{nil},
 		},
 	}
 

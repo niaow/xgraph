@@ -130,9 +130,20 @@ func (tb *treeBuilder) findCycles() []*jTree {
 
 	results := []*jTree{}
 	for _, issue := range issues {
-		if len(issue) <= 1 {
+		if len(issue) == 1 {
+			n := issue[0].(string)
+			node := tb.forest[n]
+			if node == nil {
+				continue
+			}
+			for _, v := range node.deps {
+				if v.name == n {
+					goto errgen
+				}
+			}
 			continue
 		}
+	errgen:
 		component := []string{}
 		for _, elem := range issue {
 			component = append(component, elem.(string))
