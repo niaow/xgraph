@@ -4,7 +4,7 @@ stages:
   - test
 
 before_script:
-  - go get -v github.com/looplab/tarjan
+  - go get -v github.com/davecgh/go-spew/spew github.com/looplab/tarjan
 
 go_test:
   stage: test
